@@ -21,12 +21,12 @@ jobs:
         libncurses5-dev libncursesw5-dev cmake \
         libffi-dev libssl-dev wget
 
-    # نصب Buildozer، Cython و python-for-android
-    - name: Install Buildozer, Cython and p4a
+    # نصب Buildozer و python-for-android از GitHub
+    - name: Install Buildozer and p4a
       run: |
         pip install --upgrade pip
-        pip install buildozer cython
-        pip install --upgrade python-for-android
+        pip install git+https://github.com/kivy/buildozer.git
+        pip install git+https://github.com/kivy/python-for-android.git
 
     # نصب Android SDK و NDK و تنظیم متغیرهای محیطی
     - name: Setup Android SDK & NDK
@@ -39,7 +39,7 @@ jobs:
         echo "ANDROIDNDK=$HOME/android-sdk/ndk/25.2.9519653" >> $GITHUB_ENV
         echo "PATH=$HOME/android-sdk/cmdline-tools/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
-    # ساخت APK
+    # پاکسازی و ساخت APK
     - name: Build APK
       run: |
         buildozer android clean
