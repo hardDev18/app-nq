@@ -1,0 +1,52 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # نصب پیش‌نیازها
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y python3-pip build-essential git zip unzip openjdk-17-jdk \
+        autoconf libtool pkg-config zlib1g-dev \
+        libncurses5-dev libncursesw5-dev cmake \
+        libffi-dev libssl-dev wget
+
+    # نصب Buildozer و Cython
+    - name: Install Buildozer
+      run: |
+        pip install --upgrade pip
+        pip install buildozer cython
+
+    # نصب Android SDK و NDK
+    - name: Setup Android SDK & NDK
+      run: |
+        mkdir -p $HOME/android-sdk
+        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+        unzip cmdline-tools.zip -d $HOME/android-sdk
+        yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/android-sdk "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653"
+        echo "ANDROIDSDK=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "ANDROIDNDK=$HOME/android-sdk/ndk/25.2.9519653" >> $GITHUB_ENV
+        echo "$HOME/android-sdk/cmdline-tools/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+
+    # ساخت APK
+    - name: Build APK
+      run: |
+        buildozer android clean
+        buildozer android debug
+
+    # آپلود APK ساخته شده
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: apk
+        path: bin/*.apk
